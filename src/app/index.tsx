@@ -1,37 +1,41 @@
-import { StatusBar } from 'expo-status-bar'
-import { useEffect, useState } from 'react'
-import { View } from 'react-native'
+import { router } from 'expo-router'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
-import { Cards } from '@/components/cards'
-import { Input } from '@/components/Input'
-import { api } from '@/services/api'
-import { StockDTO } from '@/services/dtos/stockDTO'
-import { STOCKS } from '@/utils/STOCKS'
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/Card'
+import { STOCKS } from '@/utils/stocks'
 
 export default function Home() {
-  const [stocks, setStocks] = useState<StockDTO[]>([] as StockDTO[])
-
-  async function fetchStocks() {
-    const response = await api.get('/quote/list?limit=10')
-    const data = response.data.stocks
-    setStocks(data)
-    // console.log(data)
-  }
-
-  // useEffect(() => {
-  //   fetchStocks()
-  // }, [])
-
   return (
-    <View className="flex-1 bg-white justify-center items-center p-8 gap-4">
-      <StatusBar style="dark" />
-      <Input
-        className="w-full gap-4 mt-10"
-        placeholder="Buscar ação"
-        placeholderTextColor={'black'}
-      />
-
-      <Cards stock={STOCKS} />
+    <View className="flex-1 justify-center items-center p-4 gap-4">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ gap: 6, paddingVertical: 40 }}
+      >
+        {STOCKS.length > 0 &&
+          STOCKS.map((stock) => {
+            return (
+              <Card key={stock.stock} className=" bg-white">
+                <CardHeader>
+                  <CardTitle>{stock.name}</CardTitle>
+                  <CardDescription>{stock.stock}</CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <TouchableOpacity
+                    onPress={() => router.navigate(`/stock/${stock.stock}`)}
+                  >
+                    <Text className="text-black">Mais informações</Text>
+                  </TouchableOpacity>
+                </CardFooter>
+              </Card>
+            )
+          })}
+      </ScrollView>
     </View>
   )
 }
