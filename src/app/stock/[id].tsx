@@ -1,10 +1,11 @@
-import { matchFont } from '@shopify/react-native-skia'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Platform, Text, View } from 'react-native'
-import { CartesianChart, Line } from 'victory-native'
+import { ActivityIndicator, View } from 'react-native'
 
 import { Button } from '@/components/Button'
+import { Chart } from '@/components/chart'
+import { StockCard } from '@/components/stock'
+import { StockDTO } from '@/dtos/stockDTO'
 import { api } from '@/services/api'
 
 // const historicalDataPrice = [
@@ -56,10 +57,9 @@ import { api } from '@/services/api'
 // ]
 
 export default function Stock() {
-  const [stock, setStock] = useState([])
+  const [stock, setStock] = useState<StockDTO[]>([])
   const [history, setHistory] = useState([])
-  const fontFamily = Platform.select({ ios: 'Helvetica', default: 'serif' })
-  const font = matchFont(fontFamily)
+  const [loading, setLoading] = useState(true)
   const { id } = useLocalSearchParams()
 
   async function fetchStockHistory() {
@@ -68,9 +68,10 @@ export default function Stock() {
         `/quote/${id}?range=5d&interval=1d&fundamental=true&modules=summaryProfile`,
       )
       const data = response.data.results
+      setLoading(true)
       setStock(data)
-      // console.log(stock[0].historicalDataPrice)
       setHistory(data[0].historicalDataPrice)
+      setLoading(false)
     } catch (error) {
       console.log(error)
     }
@@ -80,68 +81,32 @@ export default function Stock() {
     fetchStockHistory()
   }, [])
 
-  function formatDate(timestamp: number) {
-    const date = new Date(timestamp * 1000)
-    return `${date.getDate().toString()}/${date.getMonth() + 1}`
-  }
-
   return (
     <View className="flex-1 p-8">
-      {stock.length > 0 &&
+      {loading ? (
+        <ActivityIndicator
+          color="red"
+          style={{ alignContent: 'center', justifyContent: 'center' }}
+        />
+      ) : (
         stock.map((stocks) => {
           return (
             <>
-              <View key={stocks.symbol} className="items-center mt-10  px-3">
-                <Text className="text-white font-bold text-3xl tracking-tight">
-                  {stocks.symbol}
-                </Text>
-                <Text className="text-gray-300 text-xl tracking-tight">
-                  {stocks.longName}
-                </Text>
-                <Text className="text-base text-gray-400 tex-center">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Perspiciatis repellendus et reiciendis a aut, veniam aliquid
-                  architecto dolore quos minima laboriosam aspernatur
-                  necessitatibus cum consequatur non enim nulla quo unde.
-                </Text>
-              </View>
+              <StockCard stock={stocks} />
 
-              <View className="w-full h-48 mb-6 mt-6">
-                <CartesianChart
-                  data={history}
-                  xKey="date"
-                  yKeys={['adjustedClose']}
-                  axisOptions={{
-                    tickCount: 5,
-                    font,
-                    labelOffset: { x: 3, y: 2 },
-                    labelPosition: 'outset',
-                    formatYLabel: (value) =>
-                      `${value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-                    formatXLabel: (value) => formatDate(value),
-                    labelColor: { x: 'white', y: 'white' },
-                  }}
-                >
-                  {({ points }) => (
-                    <Line
-                      points={points.adjustedClose}
-                      color="red"
-                      strokeWidth={3}
-                    />
-                  )}
-                </CartesianChart>
+              <Chart historyStock={history} />
+
+              <View className="flex-row items-center justify-center rounded-md h-12 px-8 bg-gray-200">
+                <Button
+                  label="Voltar"
+                  variant="secondary"
+                  onPress={() => router.back()}
+                />
               </View>
             </>
           )
-        })}
-
-      <View className="bg-red-300 flex flex-row items-center justify-center rounded-md h-12 px-8">
-        <Button
-          label="Voltar"
-          variant="secondary"
-          onPress={() => router.back()}
-        />
-      </View>
+        })
+      )}
     </View>
   )
 }
