@@ -60,6 +60,7 @@ export default function Stock() {
   const [stock, setStock] = useState<StockDTO[]>([])
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
+
   const { id } = useLocalSearchParams()
 
   async function fetchStockHistory() {
@@ -67,13 +68,15 @@ export default function Stock() {
       const response = await api.get(
         `/quote/${id}?range=5d&interval=1d&fundamental=true&modules=summaryProfile`,
       )
-      const data = response.data.results
       setLoading(true)
+      const data = response.data.results
       setStock(data)
       setHistory(data[0].historicalDataPrice)
       setLoading(false)
     } catch (error) {
       console.log(error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -84,17 +87,14 @@ export default function Stock() {
   return (
     <View className="flex-1 p-8">
       {loading ? (
-        <ActivityIndicator
-          color="red"
-          style={{ alignContent: 'center', justifyContent: 'center' }}
-        />
+        <ActivityIndicator className="flex justify-center items-center" />
       ) : (
         stock.map((stocks) => {
           return (
             <>
               <StockCard stock={stocks} />
 
-              <Chart historyStock={history} />
+              <Chart historyStock={history} key={1} />
 
               <View className="flex-row items-center justify-center rounded-md h-12 px-8 bg-gray-200">
                 <Button

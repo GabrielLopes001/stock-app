@@ -16,10 +16,9 @@ export function StockCard({ stock }: Props) {
         {stock.longName}
       </Text>
       <Text className="text-base text-gray-400 tex-center">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Perspiciatis
-        repellendus et reiciendis a aut, veniam aliquid architecto dolore quos
-        minima laboriosam aspernatur necessitatibus cum consequatur non enim
-        nulla quo unde.
+        {stock.summaryProfile.longBusinessSummary.length > 242
+          ? stock.summaryProfile.longBusinessSummary.slice(0, 242) + '...'
+          : stock.summaryProfile.longBusinessSummary}
       </Text>
     </View>
   )
